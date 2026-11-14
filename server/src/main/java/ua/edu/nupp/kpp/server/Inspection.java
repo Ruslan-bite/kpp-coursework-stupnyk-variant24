@@ -10,11 +10,7 @@ public class Inspection {
     public Inspection() {
     }
 
-    public Inspection(Long id,
-                      long exhibitId,
-                      String inspectionDate,
-                      double damageSeverity,
-                      String notes) {
+    public Inspection(Long id, long exhibitId, String inspectionDate, double damageSeverity, String notes) {
         this.id = id;
         this.exhibitId = exhibitId;
         this.inspectionDate = inspectionDate;

@@ -11,13 +11,7 @@ public class Exhibit {
 
     public Exhibit() {
     }
-    public Exhibit(Long id,
-                   String inventoryCode,
-                   String name,
-                   String material,
-                   String hall,
-                   double materialSensitivity,
-                   double exhibitionSignificance) {
+    public Exhibit(Long id, String inventoryCode, String name, String material, String hall, double materialSensitivity, double exhibitionSignificance) {
         this.id = id;
         this.inventoryCode = inventoryCode;
         this.name = name;

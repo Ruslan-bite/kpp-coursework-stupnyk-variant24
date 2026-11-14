@@ -9,10 +9,7 @@ public class Specialist {
     public Specialist() {
     }
 
-    public Specialist(Long id,
-                      String fullName,
-                      String position,
-                      String specialization) {
+    public Specialist(Long id, String fullName, String position, String specialization) {
         this.id = id;
         this.fullName = fullName;
         this.position = position;

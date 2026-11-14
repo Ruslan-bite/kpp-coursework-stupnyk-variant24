@@ -14,15 +14,7 @@ public class ConservationRequest {
     public ConservationRequest() {
     }
 
-    public ConservationRequest(Long id,
-                               long inspectionId,
-                               long specialistId,
-                               ConservationRequestState state,
-                               double f1,
-                               double f2,
-                               double f3,
-                               double riskIndex,
-                               String description) {
+    public ConservationRequest(Long id, long inspectionId, long specialistId, ConservationRequestState state, double f1, double f2, double f3, double riskIndex, String description) {
         this.id = id;
         this.inspectionId = inspectionId;
         this.specialistId = specialistId;
@@ -106,4 +98,3 @@ public class ConservationRequest {
         this.description = description;
     }
 }
-
