@@ -7,6 +7,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import java.nio.file.Path;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MainApp extends Application {
@@ -37,8 +39,30 @@ public class MainApp extends Application {
         update.setOnAction(e->safe(()->{ Exhibit x=selected(exhibits); api.updateExhibit(readExhibit(x.getId(),code,name,material,hall,f1,f3)); refreshExhibits(); }));
         delete.setOnAction(e->safe(()->{ api.deleteExhibit(selected(exhibits).getId()); refreshAll(); }));
         refresh.setOnAction(e->refreshExhibits());
+        ProgressBar progress=new ProgressBar(0);
+        Label status=new Label("CSV не імпортовано");
+        Button importCsv=new Button("Імпортувати CSV");
+        importCsv.setOnAction(e->{
+            ImportExhibitsTask task=new ImportExhibitsTask(Path.of("sample-data","exhibits.csv"),api);
+            importCsv.setDisable(true);
+            progress.progressProperty().bind(task.progressProperty());
+            status.textProperty().bind(task.messageProperty());
+            task.setOnSucceeded(x->{
+                progress.progressProperty().unbind(); status.textProperty().unbind();
+                status.setText("Готово. Імпортовано: "+task.getValue());
+                importCsv.setDisable(false); refreshExhibits();
+            });
+            task.setOnFailed(x->{
+                progress.progressProperty().unbind(); status.textProperty().unbind();
+                Throwable ex=task.getException();
+                LOG.log(Level.SEVERE,"Помилка CSV-імпорту",ex);
+                status.setText("Імпорт зупинено через помилку");
+                importCsv.setDisable(false); refreshExhibits(); showError(ex);
+            });
+            Thread thread=new Thread(task,"csv-import"); thread.setDaemon(true); thread.start();
+        });
         exhibits.getSelectionModel().selectedItemProperty().addListener((o,a,x)->{ if(x!=null){code.setText(x.getInventoryCode());name.setText(x.getName());material.setText(x.getMaterial());hall.setText(x.getHall());f1.setText(""+x.getMaterialSensitivity());f3.setText(""+x.getExhibitionSignificance());} });
-        VBox form=new VBox(6,new Label("Інвентарний код"),code,new Label("Назва"),name,new Label("Матеріал"),material,new Label("Зала"),hall,new Label("F1 (чутливість матеріалу, 0..100)"),f1,new Label("F3 (значущість, 0..100)"),f3,new HBox(8,add,update,delete,refresh));
+        VBox form=new VBox(6,new Label("Інвентарний код"),code,new Label("Назва"),name,new Label("Матеріал"),material,new Label("Зала"),hall,new Label("F1 (чутливість матеріалу, 0..100)"),f1,new Label("F3 (значущість, 0..100)"),f3,new HBox(8,add,update,delete,refresh),importCsv,progress,status);
         return layout(exhibits,form);
     }
 
@@ -102,7 +126,7 @@ public class MainApp extends Application {
         try{ action.run(); }
         catch(Exception e){ if(e instanceof InterruptedException) Thread.currentThread().interrupt(); LOG.warning(e.getMessage()); showError(e); }
     }
-    private void showError(Throwable e) { Alert d=new Alert(Alert.AlertType.ERROR,e==null||e.getMessage()==null?"Помилка":e.getMessage(),ButtonType.OK); d.showAndWait(); }
+    private void showError(Throwable e) { String msg=e==null?null:e.getMessage(); if(msg==null && e instanceof java.net.ConnectException) msg="Сервер недоступний. Перевірте, чи запущено Tomcat."; Alert d=new Alert(Alert.AlertType.ERROR,msg==null?"Помилка":msg,ButtonType.OK); d.showAndWait(); }
     private Pane layout(TableView<?> table,Pane form) { SplitPane p=new SplitPane(table,form); p.setDividerPositions(0.68); BorderPane root=new BorderPane(p); root.setPadding(new Insets(10)); return root; }
     private <S,T> TableColumn<S,T> col(String title,String property) { TableColumn<S,T> c=new TableColumn<>(title); c.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>(property)); return c; }
     public static void main(String[] args) { launch(args); }
